@@ -3,6 +3,43 @@ import { useState, useEffect } from "react";
 function Watchlist({ watchlist, setWatchlist, handleRemove }) {
   const [genres, setGenres] = useState([]);
   const [search, setSearch] = useState("");
+
+  function getGenreNames(genreIds) {
+    return genreIds.map((id) => {
+      const genre = genres.find((g) => g.id === id);
+      return genre ? genre.name : null;
+    });
+  }
+  function sortRatingInc() {
+    //  console.log("Hello");
+    const sorted = watchlist.toSorted((movieA, movieB) => {
+      return movieA.vote_average - movieB.vote_average;
+    });
+    // console.log(watchlist);
+    setWatchlist(sorted);
+  }
+  function sortRatingDec() {
+    const sorted = watchlist.toSorted((movieA, movieB) => {
+      return movieB.vote_average - movieA.vote_average;
+    });
+    // console.log(sorted);
+    setWatchlist(sorted);
+  }
+
+  function sortPopularityInc() {
+    const sorted = watchlist.toSorted((movieA, movieB) => {
+      return movieA.popularity - movieB.popularity;
+    });
+    setWatchlist(sorted);
+  }
+
+  function sortPopularityDec() {
+    const sorted = watchlist.toSorted((movieA, movieB) => {
+      return movieB.popularity - movieA.popularity;
+    });
+    setWatchlist(sorted);
+  }
+
   useEffect(() => {
     async function fetchGenres() {
       const res = await fetch(
@@ -15,18 +52,12 @@ function Watchlist({ watchlist, setWatchlist, handleRemove }) {
     fetchGenres();
   }, []);
 
-  function getGenreNames(genreIds) {
-    return genreIds.map((id) => {
-      const genre = genres.find((g) => g.id === id);
-      return genre ? genre.name : null;
-    });
-  }
-
   return (
     <>
       <div className="h-[80px] flex justify-center items-center">
         <input
           type="text"
+          placeholder="Search movie"
           className="bg-gray-200 p-[5px]"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
@@ -36,36 +67,64 @@ function Watchlist({ watchlist, setWatchlist, handleRemove }) {
         <thead className="border">
           <tr>
             <th className="border">Name</th>
-            <th className="border">Ratings</th>
-            <th className="border">Popularity</th>
+            <th className="border">
+              <div className="flex">
+                <i
+                  className="fa-solid fa-arrow-up p-2 cursor-pointer"
+                  onClick={sortRatingInc}
+                ></i>
+                Ratings
+                <i
+                  className="fa-solid fa-arrow-down p-2 cursor-pointer"
+                  onClick={sortRatingDec}
+                ></i>
+              </div>
+            </th>
+            <th className="border">
+              <div className="flex">
+                <i
+                  className="fa-solid fa-arrow-up p-2 cursor-pointer"
+                  onClick={sortPopularityInc}
+                ></i>
+                Popularity
+                <i
+                  className="fa-solid fa-arrow-down p-2 cursor-pointer"
+                  onClick={sortPopularityDec}
+                ></i>
+              </div>
+            </th>
             <th>Genre</th>
           </tr>
         </thead>
         <tbody className="border">
-          {watchlist.filter((movie)=>{
-            return movie.original_title.toLowerCase().includes(search.toLocaleLowerCase());
-          }).map((movie) => (
-            <tr key={movie.id} className="border">
-              <td className="flex items-center gap-[6px] ">
-                <img
-                  className="w-[75px] h-auto"
-                  src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
-                ></img>
-                {movie.original_title}
-              </td>
-              <td className="border">{movie.vote_average}</td>
-              <td className="border">{movie.popularity}</td>
-              <td>{getGenreNames(movie.genre_ids).join(", ")}</td>
-              <td>
-                <span
-                  className="border p-[10px] bg-orange-600/70 cursor-pointer rounded-sm"
-                  onClick={() => handleRemove(movie)}
-                >
-                  Remove
-                </span>
-              </td>
-            </tr>
-          ))}
+          {watchlist
+            .filter((movie) => {
+              return movie.original_title
+                .toLowerCase()
+                .includes(search.toLocaleLowerCase());
+            })
+            .map((movie) => (
+              <tr key={movie.id} className="border">
+                <td className="flex items-center gap-[6px] ">
+                  <img
+                    className="w-[75px] h-auto"
+                    src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
+                  ></img>
+                  {movie.original_title}
+                </td>
+                <td className="border">{movie.vote_average}</td>
+                <td className="border">{movie.popularity}</td>
+                <td>{getGenreNames(movie.genre_ids).join(", ")}</td>
+                <td>
+                  <span
+                    className="border p-[10px] bg-orange-600/70 cursor-pointer rounded-sm"
+                    onClick={() => handleRemove(movie)}
+                  >
+                    Remove
+                  </span>
+                </td>
+              </tr>
+            ))}
         </tbody>
       </table>
     </>
